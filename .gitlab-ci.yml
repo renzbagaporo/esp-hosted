@@ -1,300 +1,37 @@
 stages:
-  - pre_check
-  - build_host
-  - build_firmware
+  - check
   - deploy
 
-variables:
-  GIT_SUBMODULE_STRATEGY: none
-
-check_version:
-  stage: pre_check
-  image: ${CI_DOCKER_REGISTRY}/esp-env-v5.5:3
-  script:
-    - export HOSTED_NG_PATH=$PWD/esp_hosted_ng
-    - .gitlab/ci/check_hosted_ng_version.sh
+# Every link and image in the docs points inside this repository, so a broken
+# path is the only way these pages can regress.
+check_links:
+  stage: check
+  image: alpine:3.20
+  tags: [build]
   rules:
-    - when: always
-  tags:
-    - build
-
-check_ng_setup_sync:
-  stage: pre_check
-  image: ${CI_DOCKER_REGISTRY}/esp-env-v5.5:3
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "master"
   script:
-    - .gitlab/ci/check_setup_sync.sh esp_hosted_ng/esp/esp_driver/setup.sh esp_hosted_ng/esp/esp_driver/setup.ps1
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes:
-        - esp_hosted_ng/esp/esp_driver/setup.sh
-        - esp_hosted_ng/esp/esp_driver/setup.ps1
-  tags:
-    - build
+    - apk add --no-cache python3
+    - python3 .gitlab/ci/check_links.py
 
-check_fg_setup_sync:
-  stage: pre_check
-  image: ${CI_DOCKER_REGISTRY}/esp-env-v5.5:3
-  script:
-    - .gitlab/ci/check_setup_sync.sh esp_hosted_fg/esp/esp_driver/setup-idf.sh esp_hosted_fg/esp/esp_driver/setup-idf.ps1
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes:
-        - esp_hosted_fg/esp/esp_driver/setup-idf.sh
-        - esp_hosted_fg/esp/esp_driver/setup-idf.ps1
-  tags:
-    - build
-
-build_fw_esp32_sdio:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET spi
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build
-
-build_fw_esp32s2_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32s2
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32s3_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32s3
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c2_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32c2
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c3_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32c3
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c6_sdio:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32c6
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c6_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32c6
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c61_sdio:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32c61
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c61_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32c61
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c5_spi:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  variables:
-    IDF_TARGET: esp32c5
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET spi
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_fw_esp32c5_sdio:
-  stage: build_firmware
-  image: $CI_DOCKER_REGISTRY/esp-env-v5.5:3
-  allow_failure: true
-  variables:
-    IDF_TARGET: esp32c5
-  script:
-    - .gitlab/ci/build_firmware.sh $IDF_TARGET sdio
-  rules:
-    - changes:
-      - esp_hosted_ng/esp/esp_driver/network_adapter/**/*
-  tags:
-    - build_fw
-
-build_host_sdio_linux_6.8.0:
-  stage: build_host
-  script:
-    - cd esp_hosted_ng/host
-    - make
-  rules:
-    - changes:
-      - esp_hosted_ng/host/**/*
-  tags:
-    - hosted_runner_4
-
-build_host_sdio_linux_6.14.0:
-  stage: build_host
-  script:
-    - cd esp_hosted_ng/host
-    - make
-  rules:
-    - changes:
-      - esp_hosted_ng/host/**/*
-  tags:
-    - hosted_runner6
-
-build_host_sdio_linux_5.15.0:
-  stage: build_host
-  script:
-    - cd esp_hosted_ng/host
-    - make check
-  rules:
-    - changes:
-      - esp_hosted_ng/host/**/*
-  tags:
-    - hosted_runner_3
-
-build_host_sdio_linux_5.4.0:
-  stage: build_host
-  script:
-    - cd esp_hosted_ng/host
-    - make check
-  rules:
-    - changes:
-      - esp_hosted_ng/host/**/*
-  tags:
-    - hosted_runner_2
-
-build_host_spi_linux_6.8.0:
-  stage: build_host
-  script:
-    - cd esp_hosted_ng/host
-    - make target=spi
-  rules:
-    - changes:
-      - esp_hosted_ng/host/**/*
-  tags:
-    - hosted_runner_4
-
-build_host_spi_linux_5.15.0:
-  stage: build_host
-  script:
-    - cd esp_hosted_ng/host
-    - make check target=spi
-  rules:
-    - changes:
-      - esp_hosted_ng/host/**/*
-  tags:
-    - hosted_runner_3
-
-build_host_spi_linux_5.4.0:
-  stage: build_host
-  script:
-    - cd esp_hosted_ng/host
-    - make check target=spi
-  rules:
-    - changes:
-      - esp_hosted_ng/host/**/*
-  tags:
-    - hosted_runner_2
-
-deploy_master_github:
+deploy_github:
   stage: deploy
-  image: $CI_DOCKER_REGISTRY/esp32-ci-env
-  tags:
-    - deploy
-  only:
-    - master
+  image: alpine:3.20
+  tags: [build]
+  variables:
+    GIT_STRATEGY: none
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"
   script:
-      - mkdir -p ~/.ssh
-      - chmod 700 ~/.ssh
-      - echo -n $GH_KEY > ~/.ssh/id_rsa_base64
-      - base64 --decode --ignore-garbage ~/.ssh/id_rsa_base64 > ~/.ssh/id_rsa
-      - chmod 600 ~/.ssh/id_rsa
-      - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-      - git remote remove github &>/dev/null || true
-      - git remote add github git@github.com:espressif/esp-hosted.git
-      - git push github "${CI_COMMIT_SHA}:refs/heads/${CI_COMMIT_REF_NAME}"
-
-include:
-  - '.gitlab/ci/pre_commit.yml'
+    - apk add --no-cache git openssh-client
+    - |
+      # GH_KEY holds the private key base64 encoded, so it carries no
+      # whitespace and can be masked.
+      echo "$GH_KEY" | base64 -d > /tmp/deploy_key
+      chmod 600 /tmp/deploy_key
+    - export GIT_SSH_COMMAND="ssh -i /tmp/deploy_key -o StrictHostKeyChecking=accept-new"
+    - git clone --quiet "$CI_REPOSITORY_URL" /tmp/deploy
+    - cd /tmp/deploy
+    - git remote add gh git@github.com:espressif/esp-hosted.git
+    - git push gh "${CI_COMMIT_SHA}:refs/heads/${CI_COMMIT_BRANCH}"
